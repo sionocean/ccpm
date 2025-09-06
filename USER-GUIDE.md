@@ -3,74 +3,93 @@
 ## 命令列表
 
 ### 工作区与初始化
-- `.claude/scripts/pm/workdir-type.sh`：判断当前路径是主仓库还是 Git worktree。
-- `/pm:help` → `help.sh`：输出命令速查表及常用工作流。
-- `/pm:init` → `init.sh`：检查并安装 `gh` CLI 与扩展、认证 GitHub、创建目录结构、复制脚本并生成 `CLAUDE.md`。
-- `/init include rules from .claude/CLAUDE.md`、`/re-init`：仓库未提供对应脚本，推测由平台注入或更新规则。
+- **`/pm:help`** →→ `help.sh`：输出命令速查表及常用工作流。
+- **`/pm:init`** →→ `init.sh`：检查并安装 `gh` CLI 与扩展、认证 GitHub、创建目录结构、复制脚本并生成 `CLAUDE.md`。
+- **`/init include rules from .claude/CLAUDE.md`**：根据模板生成根目录的 `CLAUDE.md`。
+- **`/re-init`**：如果更新Agent后，再次注入或更新 `CLAUDE.md` 中的规则。
 
-### PRD 命令
-- **`/pm:prd-new <feature_name>`**：启动新需求的头脑风暴并生成带前置信息的 PRD 文件
-- **`/pm:prd-parse <feature_name>`**：把已有 PRD 转换成实现用的 epic，生成包含技术方案与任务预览的 `epic.md`
-- **`/pm:prd-edit <feature_name>`**：交互式编辑 PRD 各部分内容，更新 `updated` 时间戳并提示相关 epic 是否需同步调整
-- `/pm:prd-new`、`/pm:prd-parse`、`/pm:prd-edit`：未找到脚本。
-- `/pm:prd-list` → `prd-list.sh`：按 backlog/in-progress/implemented 分组列出 PRD，并统计数量。
-- `/pm:prd-status` → `prd-status.sh`：统计各状态 PRD 数量，打印简单柱状分布及最近修改的 PRD。
+### PRD 命令 (/pm)
+- **`/pm:prd-new <feature_name>`** → `prd-new.md`：启动新需求的头脑风暴并生成带前置信息的 PRD 文件
+- **`/pm:prd-parse <feature_name>`** → `prd-parse.md`：把已有 PRD 转换成实现用的 epic，生成包含技术方案与任务预览的 `epic.md`
+- **`/pm:prd-edit <feature_name>`** → `prd-edit.md`：交互式编辑 PRD 各部分内容，更新 `updated` 时间戳并提示相关 epic 是否需同步调整
+- **`/pm:prd-list`** →→ `prd-list.sh`：按 backlog/in-progress/implemented 分组列出 PRD，并统计数量。
+- **`/pm:prd-status`** →→ `prd-status.sh`：统计各状态 PRD 数量，打印简单柱状分布及最近修改的 PRD。
 
-### Epic（史诗）
-- **`/pm:epic-decompose <feature_name>`**：读取 `epic.md` 后拆分为编号任务文件，必要时并行创建
-- **`/pm:epic-sync <feature_name>`**：将 epic 及任务同步到 GitHub，并建立本地工作树与映射文件
-- **`/pm:epic-oneshot <feature_name>`**：顺序执行“拆分 + 同步”，一步完成任务分解与 GitHub 发行同步
-- **`/pm:epic-close <epic_name>`**：确认所有任务关闭后把 epic 标记为完成，可选归档目录并关闭 GitHub issue
-- **`/pm:epic-edit <epic_name>`**：允许修改 epic 描述、架构决策等内容，必要时同步更新对应的 GitHub issue
-- **`/pm:epic-refresh <epic_name>`**：统计任务状态计算进度，更新 epic 的 `status`/`progress` 并勾选 GitHub 任务列表
-- **`/pm:epic-start <epic_name>`**：在 `epic/<name>` 分支上启动可并行执行的任务，记录执行状态并分派子代理
-- **`/pm:epic-merge <epic_name>`**：将完成的 epic 工作树合并回主分支，关闭相关 issue 并归档 epic 数据
-- `/pm:epic-decompose`、`/pm:epic-sync`、`/pm:epic-oneshot`、`/pm:epic-close`、`/pm:epic-edit`、`/pm:epic-refresh`、`/pm:epic-start`、`/pm:epic-merge`：未找到脚本。
-- `/pm:epic-list` → `epic-list.sh`：按规划/进行中/已完成分类列出 epics，并统计任务数。
-- `/pm:epic-show <name>` → `epic-show.sh`：展示指定 epic 的元数据、任务状态及下一步建议。
-- `/pm:epic-status <name>` → `epic-status.sh`：汇总任务完成度，绘制进度条并显示 open/blocked/closed 数。
+### Epic/史诗 (/pm)
+- **`/pm:epic-decompose <feature_name>`** → `epic-decompose.md`：读取 `epic.md` 后拆分为编号任务文件，必要时并行创建
+- **`/pm:epic-sync <feature_name>`** → `epic-sync.md`：将 epic 及任务同步到 GitHub，并建立本地工作树与映射文件
+- **`/pm:epic-oneshot <feature_name>`** → `epic-oneshot.md`：顺序执行“拆分 + 同步”，一步完成任务分解与 GitHub 发行同步
+- **`/pm:epic-close <epic_name>`** → `epic-close.md`：确认所有任务关闭后把 epic 标记为完成，可选归档目录并关闭 GitHub issue
+- **`/pm:epic-edit <epic_name>`** → `epic-edit.md`：允许修改 epic 描述、架构决策等内容，必要时同步更新对应的 GitHub issue
+- **`/pm:epic-refresh <epic_name>`** → `epic-refresh.md`：统计任务状态计算进度，更新 epic 的 `status`/`progress` 并勾选 GitHub 任务列表
+- **`/pm:epic-start <epic_name>`** → `epic-start.md`：在 `epic/<name>` 分支上启动可并行执行的任务，记录执行状态并分派子代理
+- **`/pm:epic-merge <epic_name>`** → `epic-merge.md`：将完成的 epic 工作树合并回主分支，关闭相关 issue 并归档 epic 数据
+- **`/pm:epic-list`** →→ `epic-list.sh`：按规划/进行中/已完成分类列出 epics，并统计任务数。
+- **`/pm:epic-show <name>`** →→ `epic-show.sh`：展示指定 epic 的元数据、任务状态及下一步建议。
+- **`/pm:epic-status <name>`** →→ `epic-status.sh`：汇总任务完成度，绘制进度条并显示 open/blocked/closed 数。
 
-### Issue（任务）
-- **`/pm:issue-show <issue_number>`**：显示 GitHub issue 详情、关联任务与最近活动，便于快速了解上下文
-- **`/pm:issue-status <issue_number>`**：查询 issue 当前状态、标签与本地同步情况，给出后续操作建议
-- **`/pm:issue-start <issue_number>`**：依据分析文件划分并行工作流，在 epic 工作树中启动对应代理
-- **`/pm:issue-sync <issue_number>`**：把本地 `updates/` 中的进展整合为 GitHub 评论，同时更新任务与 epic 的前置信息
-- **`/pm:issue-close <issue_number>`**：将任务标记为完成并关闭 GitHub issue，勾选 epic 中的任务复选框
-- **`/pm:issue-reopen <issue_number>`**：重新打开已关闭任务，恢复本地与 GitHub 状态并重新计算 epic 进度
-- **`/pm:issue-edit <issue_number>`**：更新任务标题、描述或标签，先改本地文件再同步至 GitHub
-- **`/pm:issue-analyze <issue_number>`**：分析任务可并行的工作流，生成 `*-analysis.md` 并评估并行效率
-- `/pm:issue-show`、`/pm:issue-status`、`/pm:issue-start`、`/pm:issue-sync`、`/pm:issue-close`、`/pm:issue-reopen`、`/pm:issue-edit`、`/pm:issue-analyze`：未找到脚本。
+### Issue/任务 (/pm)
+- **`/pm:issue-show <issue_number>`** → `issue-show.md`：显示 GitHub issue 详情、关联任务与最近活动，便于快速了解上下文
+- **`/pm:issue-status <issue_number>`** → `issue-status.md`：查询 issue 当前状态、标签与本地同步情况，给出后续操作建议
+- **`/pm:issue-start <issue_number>`** → `issue-start.md`：依据分析文件划分并行工作流，在 epic 工作树中启动对应代理
+- **`/pm:issue-sync <issue_number>`** → `issue-sync.md`：把本地 `updates/` 中的进展整合为 GitHub 评论，同时更新任务与 epic 的前置信息
+- **`/pm:issue-close <issue_number>`** → `issue-close.md`：将任务标记为完成并关闭 GitHub issue，勾选 epic 中的任务复选框
+- **`/pm:issue-reopen <issue_number>`** → `issue-reopen.md`：重新打开已关闭任务，恢复本地与 GitHub 状态并重新计算 epic 进度
+- **`/pm:issue-edit <issue_number>`** → `issue-edit.md`：更新任务标题、描述或标签，先改本地文件再同步至 GitHub
+- **`/pm:issue-analyze <issue_number>`** → `issue-analyze.md`：分析任务可并行的工作流，生成 `*-analysis.md` 并评估并行效率
 
-### 工作流管理
-- `/pm:next` → `next.sh`：扫描所有 epic，列出无未完成依赖的可开工任务。
-- `/pm:status` → `status.sh`：统计 PRD、epic、任务总数及任务开闭状态。
-- `/pm:standup` → `standup.sh`：生成今日修改记录、进行中的 issue 及下一个可执行任务的简报。
-- `/pm:blocked` → `blocked.sh`：查找存在未完成依赖的任务并列出阻塞来源。
-- `/pm:in-progress` → `in-progress.sh`：展示 `updates/` 目录下正在进行的 issue 及进度，并列出状态为 in-progress 的 epics。
+### 工作流管理 (/pm)
+- **`/pm:next`** →→ `next.sh`：扫描所有 epic，列出无未完成依赖的可开工任务。
+- **`/pm:status`** →→ `status.sh`：统计 PRD、epic、任务总数及任务开闭状态。
+- **`/pm:standup`** →→ `standup.sh`：生成今日修改记录、进行中的 issue 及下一个可执行任务的简报。
+- **`/pm:blocked`** →→ `blocked.sh`：查找存在未完成依赖的任务并列出阻塞来源。
+- **`/pm:in-progress`** →→ `in-progress.sh`：展示 `updates/` 目录下正在进行的 issue 及进度，并列出状态为 in-progress 的 epics。
 
-### 同步与维护
-- `/pm:sync`、`/pm:import`、`/pm:clean`：未找到脚本。
-- `/pm:validate` → `validate.sh`：检查 `.claude` 目录结构、任务引用、frontmatter 等完整性。
-- `/pm:search <query>` → `search.sh`：在 PRD、epic、任务中全文检索关键词并统计结果。
+### 同步与维护 (/pm)
+- **`/pm:sync [epic_name]`** → `sync.md`: 在本地与 GitHub 之间双向同步所有 epic/任务状态，处理冲突并记录同步结果
+- **`/pm:import [--epic <name>] [--label <label>]`** → `import.md`：把已有 GitHub issue 导入成本地 epic/任务结构，保留元数据
+- **`/pm:clean [--dry-run]`** → `clean.md`：清理已完成或陈旧的进度文件，归档过期 epic 并输出清理计划
+- **`/pm:validate`** →→ `validate.sh`：检查 `.claude` 目录结构、任务引用、frontmatter 等完整性。
+- **`/pm:search <query>`** →→ `search.sh`：在 PRD、epic、任务中全文检索关键词并统计结果。
+- **`/pm:workdir-type`** →→ `workdir-type.sh`（新增）判断当前路径是主仓库还是 Git worktree。
 
-### 上下文管理
-- `/context:create`：分析项目结构并生成 `.claude/context/` 下的多份基线文档，作为项目上下文
-- `/context:update`：依据最近代码变动更新各类上下文文件，精确记录变更并维护时间戳
-- `/context:prime`：在新会话开始时按优先级加载上下文文件并检查完整性，为代理提供项目背景
-- `/context:create`、`/context:update`、`/context:prime`：未找到脚本。
+### 上下文管理 (/context)
+- **`/context:create`** → `create.md`：分析项目结构并生成 `.claude/context/` 下的多份基线文档，作为项目上下文
+- **`/context:update`** → `update.md`：依据最近代码变动更新各类上下文文件，精确记录变更并维护时间戳
+- **`/context:prime`** → `prime.md`：在新会话开始时按优先级加载上下文文件并检查完整性，为代理提供项目背景
 
-### 测试命令
-- `/testing:prime`：自动探测测试框架与依赖，生成测试配置并准备测试代理
-- `/testing:run [target]`：使用测试代理执行全部或部分测试，输出简明结果并在失败时给出分析
-- `/testing:prime`、`/testing:run`：未找到脚本；仓库提供 `test-and-log.sh`，可运行指定 Python 测试并将输出写入 `tests/logs/*.log`。
+### 测试命令 (/test)
+- **`/testing:prime`** → `prime.md`：自动探测测试框架与依赖，生成测试配置并准备测试代理
+- **`/testing:run [target]`** → `run.md`：使用测试代理执行全部或部分测试，输出简明结果并在失败时给出分析
+- 另外：仓库提供 `test-and-log.sh`，可运行指定 Python 测试并将输出写入 `tests/logs/*.log`。
 
-### 其他工具
-- `/prompt`：当复杂提示无法直接输入时，把内容写入专用文件后用该命令触发执行
-- `/code-rabbit`：处理 CodeRabbit 代码审查意见，基于上下文判断是否采纳并可并行处理多文件建议
-- `/re-init`：将 `.claude/CLAUDE.md` 里的规则重新注入或追加到根目录 `CLAUDE.md` 中
-- `/compact`、`/clear`：在 `.claude/commands/` 目录下未找到对应说明文件
+### 其他工具 (/command)
+- **`/prompt`** → `prompt.md`：当复杂提示无法直接输入时，把内容写入专用文件后用该命令触发执行
+- **`/code-rabbit`** → `code-rabbit.md`：处理 CodeRabbit 代码审查意见，基于上下文判断是否采纳并可并行处理多文件建议
+- **`/re-init`** → `re-init.md`：将 `.claude/CLAUDE.md` 里的规则重新注入或追加到根目录 `CLAUDE.md` 中
 
 ## 推荐工作流
+1. **初始检查与准备**
+   - 运行 `.claude/scripts/pm/workdir-type.sh` 判断当前目录类型，并使用 `/pm:init` 完成依赖安装与 GitHub 认证。如果项目已有 CLAUDE.md，用 `/re-init` 更新；否则执行 `/init include rules from .claude/CLAUDE.md` 生成。
+2. **建立和管理上下文**
+   - 首次进入项目时使用 `/context:create` 构建完整文档；之后每次开发前 `/context:prime` 加载上下文，重大改动后用 `/context:update`。
+3. **编写和解析 PRD**
+   - 新功能从 `/pm:prd-new` 开始撰写 PRD，然后通过 `/pm:prd-parse` 转为 epic；用 /pm:prd-list、`/pm:prd-edit`、`/pm:prd-status` 或者 `/pm:edit` 维护 PRD。
+4. **Epic 阶段**
+   - 使用 `/pm:epic-decompose` 拆分任务并 `/pm:epic-sync` 或 `/pm:epic-oneshot` 同步到 GitHub。必要时 `/pm:epic-start` 启动并行工作流，完成后 `/pm:epic-merge` 合并成果。随时可用 `/pm:epic-list`、`/pm:epic-show`、`/pm:epic-edit`、`/pm:epic-refresh` 管理状态。
+5. **Issue 实施**
+   - 对每个任务执行 `/pm:issue-start` 启动专用 agent；期间用 `/pm:issue-sync` 推送进展，完成后 `/pm:issue-close`，若需要重新打开则 `/pm:issue-reopen`。复杂任务可先 `/pm:issue-analyze` 以确定并行化策略。
+6. **日常协作与监控**
+   - `/pm:next` 提示下一个优先事项，`/pm:status`、`/pm:standup`、`/pm:blocked`、`/pm:in-progress` 协助团队掌握整体进度。
+7. **测试与质量保证**
+   - 通过 `/testing:prime` 配置测试环境；开发过程中或提交前调用 `/testing:run` 执行测试，确保质量。
+8. **同步与维护**
+   - 使用 `/pm:sync` 与 GitHub 双向同步，必要时 `/pm:import` 导入现有 issue。定期运行 `/pm:validate`、`/pm:clean`、`/pm:search` 维护系统整洁性。
+9. **处理评审与复杂交互**
+   - 需要解析 CodeRabbit 评审时运行 `/code-rabbit`；当提示太复杂无法直接输入时使用 `/prompt`。聊天历史过长时可用 `/compact` 或 `/clear` 管理上下文。
+
+> 此流程覆盖从项目初始化、需求管理、开发实施、测试到同步维护的主要阶段，有助于在合适的时间调用合适命令完成工作。
+
 
 ### 1. 简单任务：单个功能程序
 1. `/pm:init` → 初始化环境，必要时 `/re-init` 更新规则。  
