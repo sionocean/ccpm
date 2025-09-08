@@ -12,5 +12,5 @@ if [ "$repo_root" = "$main_repo" ]; then
   echo "✅ Working in main repository"
 else
   rel_path=$(realpath --relative-to="$main_repo" "$repo_root")
-  echo "✅ Working in worktree: $rel_path"
+  echo "❗️🔺 Working in worktree: $rel_path"
 fi

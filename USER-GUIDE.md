@@ -23,7 +23,7 @@
 - **`/pm:epic-edit <epic_name>`** → `epic-edit.md`：允许修改 epic 描述、架构决策等内容，必要时同步更新对应的 GitHub issue
 - **`/pm:epic-refresh <epic_name>`** → `epic-refresh.md`：统计任务状态计算进度，更新 epic 的 `status`/`progress` 并勾选 GitHub 任务列表
 - **`/pm:epic-start <epic_name>`** → `epic-start.md`：在 `epic/<name>` 分支上启动可并行执行的任务，记录执行状态并分派子代理
-- **`/pm:epic-merge <epic_name>`** → `epic-merge.md`：将完成的 epic 工作树合并回主分支，关闭相关 issue 并归档 epic 数据
+- **`/pm:epic-merge <epic_name>`** → `epic-merge.md`：将完成的 **`epic 工作树`** 合并回 **`主仓库分支`**，关闭相关 issue 并归档 epic 数据
 - **`/pm:epic-list`** →→ `epic-list.sh`：按规划/进行中/已完成分类列出 epics，并统计任务数。
 - **`/pm:epic-show <name>`** →→ `epic-show.sh`：展示指定 epic 的元数据、任务状态及下一步建议。
 - **`/pm:epic-status <name>`** →→ `epic-status.sh`：汇总任务完成度，绘制进度条并显示 open/blocked/closed 数。
@@ -70,7 +70,7 @@
 
 ## 推荐工作流
 1. **初始检查与准备**
-   - 运行 `.claude/scripts/pm/workdir-type.sh` 判断当前目录类型，并使用 `/pm:init` 完成依赖安装与 GitHub 认证。如果项目已有 CLAUDE.md，用 `/re-init` 更新；否则执行 `/init include rules from .claude/CLAUDE.md` 生成。
+   - 使用 `/pm:init` 完成依赖安装与 GitHub 认证。执行 `/init include rules from .claude/CLAUDE.md` 生成CLAUDE.md。如果项目已有 CLAUDE.md，用 `/re-init` 更新。
 2. **建立和管理上下文**
    - 首次进入项目时使用 `/context:create` 构建完整文档；之后每次开发前 `/context:prime` 加载上下文，重大改动后用 `/context:update`。
 3. **编写和解析 PRD**
@@ -156,3 +156,37 @@ D --> E[issue-close]
 3. `/pm:issue-sync <id>` 提交进展，必要时 `/testing:run` 保障无回归。  
 4. `/pm:issue-close <id>` 收尾并 `/pm:clean` 整理历史。
 
+## Best Practices
+
+### 命令组对比  
+
+| 组别 | 命令 | 核心作用 | 典型输出/效果 |
+|------|------|----------|----------------|
+| **进度追踪** | `/pm:status` | 汇总 PRD、Epic、Issue 的开闭状态与数量，提供项目全局快照 | 柱状或进度条统计 |
+| | `/pm:standup` | 生成当天修改、正在进行的 Issue、下一步任务等简报 | 日常站会报告/复盘 |
+| | `/pm:in-progress` | 列出 `updates/` 下正在推进的 Issue 与状态为 in-progress 的 Epic | 当前手头任务清单 |
+| **上下文管理** | `/context:create` | 从代码与文档生成初始上下文文件，为项目建立基线 | `.claude/context/*` 多份文档 |
+| | `/context:update` | 根据最新代码/文档变动刷新上下文并维护时间戳 | 更新后的上下文文件 |
+| | `/context:prime` | 在新会话或切换分支时加载上下文，确保代理具备必要背景 | 将上下文注入对话内存 |
+
+### 使用场景与示例  
+
+1. **开工前掌握项目状态**  
+   - 运行 `/pm:status` 了解整体进度，再用 `/pm:in-progress` 查目前的手头任务。  
+   - 进入开发前执行 `/context:prime`，将项目背景加载到当前会话。  
+   - *示例*: 早上打开工作环境，先 `/pm:status` → `/pm:in-progress`，然后 `/context:prime`，即可清楚任务与上下文。
+
+2. **日常收尾与复盘**  
+   - 当天结束前运行 `/pm:standup` 生成总结，并记录下一步计划。  
+   - 若当天修改了大量代码，随后运行 `/context:update`，让上下文反映最新变动。  
+   - *示例*: 实现了一个功能后，执行 `/pm:standup` 输出简报，再 `/context:update` 刷新说明文档。
+
+3. **新项目或模块启动**  
+   - 刚 fork 或初始化项目时，使用 `/context:create` 建立完整上下文基线。  
+   - 撰写 PRD、拆分 Epic 后，通过 `/pm:status` 和 `/pm:in-progress` 监控进度。  
+   - *示例*: 新增“支付模块”，先 `/context:create` 生成文档，再随开发使用 `/pm:status` 查看整体推进。
+
+4. **长期维护或多人协作**  
+   - 团队成员切换分支或加入项目时先 `/context:prime` 获取背景，再用 `/pm:in-progress` 查看自己或他人当前任务。  
+   - 周期性执行 `/pm:standup` 汇总会议纪要，定期 `/context:update` 以保持文档同步。  
+   - *示例*: 远程协作的团队，每周例会由 `/pm:standup` 输出报告，随后 `/context:update` 使文档保持一致。
