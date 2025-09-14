@@ -85,7 +85,22 @@ if [ -f "$progress_file" ]; then
 fi
 ```
 
-### 5. Close on GitHub
+### 5. Collect Related Commits
+
+# Get commits related to this issue since task started
+if [ -f "$progress_file" ]; then
+  start_date=$(grep '^started:' "$progress_file" | sed 's/started: *//')
+else
+  start_date="7 days ago" # fallback
+fi
+
+# Find related commits by issue number and timeframe
+related_commits=$(git log --oneline --grep="#$ARGUMENTS" --since="$start_date")
+if [ -z "$related_commits" ]; then
+  related_commits=$(git log --oneline --since="$start_date" --author="$(git config user.name)" | head -5)
+fi
+
+### 6. Close on GitHub
 
 Create comprehensive completion comment based on available information:
 ```bash
@@ -126,6 +141,17 @@ $2
 EOF
 fi
 
+# Add commits if found
+if [ ! -z "$related_commits" ]; then
+  cat >> /tmp/completion-comment.md << EOF
+
+### 💻 Related Commits
+\`\`\`
+$related_commits
+\`\`\`
+EOF
+fi
+
 cat >> /tmp/completion-comment.md << EOF
 
 ### 🎯 Status
@@ -144,7 +170,7 @@ gh issue comment $ARGUMENTS --body-file /tmp/completion-comment.md
 gh issue close $ARGUMENTS
 ```
 
-### 6. Update Epic Task List on GitHub
+### 7. Update Epic Task List on GitHub
 
 Check the task checkbox in the epic issue:
 
@@ -169,7 +195,7 @@ if [ ! -z "$epic_issue" ]; then
 fi
 ```
 
-### 7. Update Local Epic Task List
+### 8. Update Local Epic Task List
 
 Update the "## Tasks Created" section in epic.md:
 - Change `- [ ] {TASK_ID}` to `- [x] {TASK_ID} ✅` for completed task
@@ -190,7 +216,7 @@ rm .claude/epics/$epic_name/epic.md.bak
 echo "✓ Updated local epic task list for ${task_id}"
 ```
 
-### 8. Update Epic Progress (Comprehensive Calculation)
+### 9. Update Epic Progress (Comprehensive Calculation)
 
 Calculate and update epic progress based on all task statuses:
 ```bash
@@ -220,7 +246,7 @@ else
 fi
 ```
 
-### 9. Output
+### 10. Output
 
 Provide comprehensive completion summary:
 ```bash
