@@ -179,7 +179,7 @@ Check the task checkbox in the epic issue:
 epic_name={extract_from_path}
 
 # Get epic issue number from epic.md
-epic_issue=$(grep 'github:' .claude/epics/$epic_name/epic.md | grep -oE '[0-9]+$')
+epic_issue=$(grep 'github_url:' .claude/epics/$epic_name/epic.md | grep -oE '[0-9]+$')
 
 if [ ! -z "$epic_issue" ]; then
   # Get current epic body

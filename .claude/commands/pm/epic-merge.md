@@ -100,7 +100,7 @@ $(cd .claude/epics/$ARGUMENTS && ls *.md | grep -E '^[A-Z][A-Z][A-Z][0-9][0-9][0
   echo "- $(grep '^name:' $f | cut -d: -f2)"
 done)
 
-Closes epic #$(grep 'github:' .claude/epics/$ARGUMENTS/epic.md | grep -oE '#[0-9]+')"
+Closes epic #$(grep 'github_url:' .claude/epics/$ARGUMENTS/epic.md | grep -oE '#[0-9]+')"
 ```
 
 ### 5. Handle Merge Conflicts
@@ -159,14 +159,14 @@ echo "✅ Epic archived: .claude/epics/.archived/$ARGUMENTS"
 Close related issues:
 ```bash
 # Get issue numbers from epic
-epic_issue=$(grep 'github:' .claude/epics/.archived/$ARGUMENTS/epic.md | grep -oE '[0-9]+$')
+epic_issue=$(grep 'github_url:' .claude/epics/.archived/$ARGUMENTS/epic.md | grep -oE '[0-9]+$')
 
 # Close epic issue
 gh issue close $epic_issue -c "Epic completed and merged to $target_branch"
 
 # Close task issues
 for task_file in .claude/epics/.archived/$ARGUMENTS/[A-Z][A-Z][A-Z][0-9][0-9][0-9].md; do
-  issue_num=$(grep 'github:' $task_file | grep -oE '[0-9]+$')
+  issue_num=$(grep 'github_url:' $task_file | grep -oE '[0-9]+$')
   if [ ! -z "$issue_num" ]; then
     gh issue close $issue_num -c "Completed in epic merge"
   fi
