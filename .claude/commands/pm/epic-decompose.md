@@ -108,7 +108,7 @@ created: [Current ISO date/time]
 updated: [Current ISO date/time]
 assignee: unassigned
 labels: []  # Array of relevant labels
-dependencies: []  # Array of task IDs this depends on (e.g., [LPR001, LPR002])
+dependencies: []  # Array of task IDs this depends on (e.g., [ABC001, ABC002])
 depends_on: []  # Epic-prefixed task IDs that must complete before this can start
 parallel: true  # Can this run alongside other tasks without conflicts
 conflicts_with: []  # Epic-prefixed task IDs that modify the same files
@@ -155,7 +155,7 @@ Save tasks as: `.claude/epics/$ARGUMENTS/{epic_code}{number}.md`
 
 ### 6. Frontmatter Field Explanations
 Additional context and validation rules for the above template:
-- **id**: Epic code + 3-digit number (e.g., LPR001) without quotes
+- **id**: Epic code + 3-digit number (e.g., ABC001) without quotes
 - **epic**: The epic name (e.g., login-page-redesign)
 - **title**: Descriptive task title in quotes (without "Task:" prefix)
 - **status**: Always start with "open" for new tasks
@@ -165,8 +165,8 @@ Additional context and validation rules for the above template:
 - **updated**: Use the same real datetime as created for new tasks
 - **assignee**: Always start with "unassigned"
 - **labels**: Array of relevant labels (e.g., [frontend, ui, api])
-- **dependencies**: Array of Epic-prefixed task IDs this depends on (e.g., [LPR001, LPR002])
-- **depends_on**: Array of Epic-prefixed task IDs that must complete before this can start (e.g., [LPR001, LPR002])
+- **dependencies**: Array of Epic-prefixed task IDs this depends on (e.g., [ABC001, ABC002])
+- **depends_on**: Array of Epic-prefixed task IDs that must complete before this can start (e.g., [ABC001, ABC002])
 - **parallel**: Set to true if this can run alongside other tasks without conflicts
 - **conflicts_with**: Array of Epic-prefixed task IDs that modify the same files (helps coordination)
 - **estimated_hours**: Estimated effort in hours (numeric value)
