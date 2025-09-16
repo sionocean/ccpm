@@ -18,12 +18,6 @@ The worktree will be created as a sibling directory to maintain clean separation
 
 ## Working in Worktrees
 
-Before making any edits or commits, verify where you are working:
-
-```bash
-./.claude/scripts/pm/workdir-type.sh
-```
-
 ### Agent Commits
 - Agents commit directly to the worktree
 - Use small, focused commits
