@@ -225,7 +225,33 @@ Consolidate results from parallel agents:
 # Collect all mappings from agents
 cat /tmp/batch-*/mapping.txt >> /tmp/task-mapping.txt
 
-# IMPORTANT: After consolidation, follow step 3 to:
+# Verify mapping correctness (solve parallel creation race condition)
+echo "🔍 Verifying issue mapping..."
+
+created_issues=$(cat /tmp/batch-*/mapping.txt | cut -d: -f2)
+> /tmp/verified-mapping.txt
+
+for issue_num in $created_issues; do
+  # Extract task_id from issue title
+  task_id=$(gh issue view $issue_num --json title -q .title | grep -o '^[A-Z][A-Z][A-Z][0-9][0-9][0-9]')
+
+  if [[ -n "$task_id" ]]; then
+    task_file=".claude/epics/$ARGUMENTS/${task_id}.md"
+    if [[ -f "$task_file" ]]; then
+      echo "$task_file:$issue_num" >> /tmp/verified-mapping.txt
+      echo "✅ $task_id → #$issue_num (verified)"
+    else
+      echo "⚠️  No local file found for $task_id"
+    fi
+  else
+    echo "⚠️  Could not extract task ID from issue #$issue_num"
+  fi
+done
+
+# Replace with verified mapping
+mv /tmp/verified-mapping.txt /tmp/task-mapping.txt
+
+# IMPORTANT: After verification, follow step 3 to:
 # 1. Build old->new ID mapping
 # 2. Update all task references (depends_on, conflicts_with)
 # 3. Rename files with proper frontmatter updates
