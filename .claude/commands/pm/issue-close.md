@@ -16,12 +16,13 @@ Mark an issue as complete and close it on GitHub.
 ### 1. Find Local Task File and Extract GitHub Issue Number
 
 ```bash
-# Extract GitHub issue number from task file
-issue_number=$(grep "^github_url:" .claude/epics/*/$ARGUMENTS.md 2>/dev/null | grep -o '[0-9]*$')
-[ -z "$issue_number" ] && echo "❌ No GitHub issue found for $ARGUMENTS. Run /pm:epic-sync first." && exit 1
+# Find task file
+task_file=$(find .claude/epics -name "$ARGUMENTS.md" -not -path "*/.archived/*" 2>/dev/null | head -1)
+[ -z "$task_file" ] && echo "❌ No task file found for $ARGUMENTS" && exit 1
 
-# Set task file path
-task_file=".claude/epics/*/$ARGUMENTS.md"
+# Extract GitHub issue number from task file
+issue_number=$(grep "^github_url:" "$task_file" 2>/dev/null | grep -o '[0-9]*$')
+[ -z "$issue_number" ] && echo "❌ No GitHub issue found for $ARGUMENTS. Run /pm:epic-sync first." && exit 1
 ```
 
 ### 2. Detect Current Status (Smart Completion Detection)
@@ -180,8 +181,8 @@ gh issue close $issue_number
 Check the task checkbox in the epic issue:
 
 ```bash
-# Get epic name from local task file path
-epic_name={extract_from_path}
+# Extract epic name from task file path
+epic_name=$(basename $(dirname "$task_file"))
 
 # Get epic issue number from epic.md
 epic_issue=$(grep 'github_url:' .claude/epics/$epic_name/epic.md | grep -oE '[0-9]+$')

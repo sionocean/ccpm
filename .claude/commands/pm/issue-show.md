@@ -17,12 +17,15 @@ You are displaying comprehensive information about a GitHub issue and related su
 
 ### 1. Fetch Issue Data
 ```bash
+# Find task file
+task_file=$(find .claude/epics -name "$ARGUMENTS.md" -not -path "*/.archived/*" 2>/dev/null | head -1)
+[ -z "$task_file" ] && echo "❌ No task file found for $ARGUMENTS" && exit 1
+
 # Extract GitHub issue number from task file
-issue_number=$(grep "^github_url:" .claude/epics/*/$ARGUMENTS.md 2>/dev/null | grep -o '[0-9]*$')
+issue_number=$(grep "^github_url:" "$task_file" 2>/dev/null | grep -o '[0-9]*$')
 [ -z "$issue_number" ] && echo "❌ No GitHub issue found for $ARGUMENTS. Run /pm:epic-sync first." && exit 1
 gh issue view $issue_number --json title,body,labels,state,assignees
 ```
-- Look for local task file: `.claude/epics/*/$ARGUMENTS.md`
 - Check for related issues and sub-tasks
 
 ### 2. Issue Overview

@@ -22,8 +22,12 @@ Before proceeding, complete these validation steps.
 Do not bother the user with preflight checks progress ("I'm not going to ..."). Just do them and move on.
 
 ```bash
+# Find task file
+task_file=$(find .claude/epics -name "$ARGUMENTS.md" -not -path "*/.archived/*" 2>/dev/null | head -1)
+[ -z "$task_file" ] && echo "❌ No task file found for $ARGUMENTS" && exit 1
+
 # Extract GitHub issue number from task file
-issue_number=$(grep "^github_url:" .claude/epics/*/$ARGUMENTS.md 2>/dev/null | grep -o '[0-9]*$')
+issue_number=$(grep "^github_url:" "$task_file" 2>/dev/null | grep -o '[0-9]*$')
 [ -z "$issue_number" ] && echo "❌ No GitHub issue found for $ARGUMENTS. Run /pm:epic-sync first." && exit 1
 ```
 
@@ -48,7 +52,7 @@ issue_number=$(grep "^github_url:" .claude/epics/*/$ARGUMENTS.md 2>/dev/null | g
    - If issue is closed and completion < 100%, warn: "⚠️ Issue is closed but work incomplete"
 
 3. **Local Updates Check:**
-   - Check if `.claude/epics/*/updates/$ARGUMENTS/` directory exists
+   - Check if updates directory exists using task file path
    - If not found, tell user: "❌ No local updates found for issue #$ARGUMENTS. Run: /pm:issue-start $ARGUMENTS"
    - Check if progress.md exists
    - If not, tell user: "❌ No progress tracking found. Initialize with: /pm:issue-start $ARGUMENTS"

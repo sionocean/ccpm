@@ -16,15 +16,16 @@ Edit issue details locally and on GitHub.
 ### 1. Get Current Issue State
 
 ```bash
+# Find task file
+task_file=$(find .claude/epics -name "$ARGUMENTS.md" -not -path "*/.archived/*" 2>/dev/null | head -1)
+[ -z "$task_file" ] && echo "❌ No task file found for $ARGUMENTS" && exit 1
+
 # Extract GitHub issue number from task file
-issue_number=$(grep "^github_url:" .claude/epics/*/$ARGUMENTS.md 2>/dev/null | grep -o '[0-9]*$')
+issue_number=$(grep "^github_url:" "$task_file" 2>/dev/null | grep -o '[0-9]*$')
 [ -z "$issue_number" ] && echo "❌ No GitHub issue found for $ARGUMENTS. Run /pm:epic-sync first." && exit 1
 
 # Get from GitHub
 gh issue view $issue_number --json title,body,labels
-
-# Local task file path
-task_file=".claude/epics/*/$ARGUMENTS.md"
 ```
 
 ### 2. Interactive Edit
