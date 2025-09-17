@@ -272,7 +272,7 @@ while IFS=: read -r task_file task_number; do
   current_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
   # Update frontmatter with GitHub URL and timestamp
-  sed -i.bak "/^github:/c\github: $github_url" "$task_file"
+  sed -i.bak "/^github_url:/c\github_url: $github_url" "$task_file"
   sed -i.bak "/^updated:/c\updated: $current_date" "$task_file"
   rm "${task_file}.bak"
   
@@ -317,7 +317,7 @@ epic_url="https://github.com/$repo/issues/$epic_number"
 current_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Update epic frontmatter
-sed -i.bak "/^github:/c\github: $epic_url" .claude/epics/$ARGUMENTS/epic.md
+sed -i.bak "/^github_url:/c\github_url: $epic_url" .claude/epics/$ARGUMENTS/epic.md
 sed -i.bak "/^updated:/c\updated: $current_date" .claude/epics/$ARGUMENTS/epic.md
 rm .claude/epics/$ARGUMENTS/epic.md.bak
 ```
@@ -337,7 +337,7 @@ for task_file in .claude/epics/$ARGUMENTS/[A-Z][A-Z][A-Z][0-9][0-9][0-9].md; do
   epic_task_id=$(grep '^id:' "$task_file" | sed 's/^id: *["']\?\([^"']*\)["']\?.*/\1/')
   
   # Get GitHub issue number from frontmatter
-  github_url=$(grep '^github:' "$task_file" | sed 's/^github: *//')
+  github_url=$(grep '^github_url:' "$task_file" | sed 's/^github_url: *//')
   issue_num=$(echo "$github_url" | sed 's|.*/||')
 
   # Get task name from frontmatter
@@ -401,7 +401,7 @@ for task_file in .claude/epics/$ARGUMENTS/[A-Z][A-Z][A-Z][0-9][0-9][0-9].md; do
 
   epic_task_id=$(grep '^id:' "$task_file" | sed 's/^id: *["']\?\([^"']*\)["']\?.*/\1/')
   task_name=$(grep '^name:' "$task_file" | sed 's/^name: *//')
-  github_url=$(grep '^github:' "$task_file" | sed 's/^github: *//')
+  github_url=$(grep '^github_url:' "$task_file" | sed 's/^github_url: *//')
   issue_num=$(echo "$github_url" | sed 's|.*/||')
 
   echo "- ${epic_task_id}.md → #${issue_num}: ${task_name}" >> .claude/epics/$ARGUMENTS/github-mapping.md
@@ -412,19 +412,32 @@ echo "" >> .claude/epics/$ARGUMENTS/github-mapping.md
 echo "Synced: $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> .claude/epics/$ARGUMENTS/github-mapping.md
 ```
 
-### 7. Create Worktree
+### 7. Create Epic Branch and Worktree
 
-Follow `/rules/worktree-operations.md` to create development worktree:
+Follow `/rules/branch-operations.md` and `/rules/worktree-operations.md`:
 
 ```bash
-# Ensure main is current
-git checkout main
-git pull origin main
+# Record current branch as source branch
+current_branch=$(git branch --show-current)
 
-# Create worktree for epic
-git worktree add ../epic-$ARGUMENTS -b epic/$ARGUMENTS
+# Update epic.md frontmatter to include source branch
+if grep -q '^source_branch:' .claude/epics/$ARGUMENTS/epic.md; then
+  sed -i.bak "s/^source_branch:.*/source_branch: $current_branch/" .claude/epics/$ARGUMENTS/epic.md
+else
+  # Add source_branch after the status line
+  sed -i.bak "/^status:/a\
+source_branch: $current_branch" .claude/epics/$ARGUMENTS/epic.md
+fi
+rm -f .claude/epics/$ARGUMENTS/epic.md.bak
 
-echo "✅ Created worktree: ../epic-$ARGUMENTS"
+# Create epic branch from current branch
+git checkout -b epic/$ARGUMENTS
+git push -u origin epic/$ARGUMENTS
+
+# Create worktree from epic branch
+git worktree add ../epic-$ARGUMENTS
+
+echo "✅ Created epic branch and worktree: ../epic-$ARGUMENTS from $current_branch"
 ```
 
 ### 8. Output

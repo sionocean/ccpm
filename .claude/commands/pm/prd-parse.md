@@ -74,9 +74,11 @@ Create the epic file at: `.claude/epics/$ARGUMENTS/epic.md` with this exact stru
 name: $ARGUMENTS
 status: backlog
 created: [Current ISO date/time]
+updated: [Will be set when epic is modified]
 progress: 0%
 prd: .claude/prds/$ARGUMENTS.md
-github: [Will be updated when synced to GitHub]
+github_url: [Will be updated when synced to GitHub]
+source_branch: [Will be set when epic starts]
 ---
 
 # Epic: $ARGUMENTS
