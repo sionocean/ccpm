@@ -8,7 +8,7 @@ Edit issue details locally and on GitHub.
 
 ## Usage
 ```
-/pm:issue-edit <issue_number>
+/pm:issue-edit <task_id>
 ```
 
 ## Instructions
@@ -16,11 +16,15 @@ Edit issue details locally and on GitHub.
 ### 1. Get Current Issue State
 
 ```bash
-# Get from GitHub
-gh issue view $ARGUMENTS --json title,body,labels
+# Extract GitHub issue number from task file
+issue_number=$(grep "^github_url:" .claude/epics/*/$ARGUMENTS.md 2>/dev/null | grep -o '[0-9]*$')
+[ -z "$issue_number" ] && echo "❌ No GitHub issue found for $ARGUMENTS. Run /pm:epic-sync first." && exit 1
 
-# Find local task file
-# Search for file with github:.*issues/$ARGUMENTS
+# Get from GitHub
+gh issue view $issue_number --json title,body,labels
+
+# Local task file path
+task_file=".claude/epics/*/$ARGUMENTS.md"
 ```
 
 ### 2. Interactive Edit
@@ -45,18 +49,18 @@ Update task file with changes:
 
 If title changed:
 ```bash
-gh issue edit $ARGUMENTS --title "{new_title}"
+gh issue edit $issue_number --title "{new_title}"
 ```
 
 If body changed:
 ```bash
-gh issue edit $ARGUMENTS --body-file {updated_task_file}
+gh issue edit $issue_number --body-file {updated_task_file}
 ```
 
 If labels changed:
 ```bash
-gh issue edit $ARGUMENTS --add-label "{new_labels}"
-gh issue edit $ARGUMENTS --remove-label "{removed_labels}"
+gh issue edit $issue_number --add-label "{new_labels}"
+gh issue edit $issue_number --remove-label "{removed_labels}"
 ```
 
 ### 5. Output

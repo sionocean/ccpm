@@ -8,7 +8,7 @@ Check issue status (open/closed) and current state.
 
 ## Usage
 ```
-/pm:issue-status <issue_number>
+/pm:issue-status <task_id>
 ```
 
 ## Instructions
@@ -18,7 +18,10 @@ You are checking the current status of a GitHub issue and providing a quick stat
 ### 1. Fetch Issue Status
 Use GitHub CLI to get current status:
 ```bash
-gh issue view #$ARGUMENTS --json state,title,labels,assignees,updatedAt
+# Extract GitHub issue number from task file
+issue_number=$(grep "^github_url:" .claude/epics/*/$ARGUMENTS.md 2>/dev/null | grep -o '[0-9]*$')
+[ -z "$issue_number" ] && echo "❌ No GitHub issue found for $ARGUMENTS. Run /pm:epic-sync first." && exit 1
+gh issue view #$issue_number --json state,title,labels,assignees,updatedAt
 ```
 
 ### 2. Status Display
@@ -65,8 +68,8 @@ Based on status, suggest actions:
 🚀 Suggested Actions:
    - Start work: /pm:issue-start $ARGUMENTS
    - Sync updates: /pm:issue-sync $ARGUMENTS
-   - Close issue: gh issue close #$ARGUMENTS
-   - Reopen issue: gh issue reopen #$ARGUMENTS
+   - Close issue: gh issue close #$issue_number
+   - Reopen issue: gh issue reopen #$issue_number
 ```
 
 ### 7. Batch Status

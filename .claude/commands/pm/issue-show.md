@@ -8,7 +8,7 @@ Display issue and sub-issues with detailed information.
 
 ## Usage
 ```
-/pm:issue-show <issue_number>
+/pm:issue-show <task_id>
 ```
 
 ## Instructions
@@ -16,9 +16,13 @@ Display issue and sub-issues with detailed information.
 You are displaying comprehensive information about a GitHub issue and related sub-issues for: **Issue #$ARGUMENTS**
 
 ### 1. Fetch Issue Data
-- Use `gh issue view #$ARGUMENTS` to get GitHub issue details
-- Look for local task file: first check `.claude/epics/*/$ARGUMENTS.md` (new naming)
-- If not found, search for file with `github:.*issues/$ARGUMENTS` in frontmatter (old naming)
+```bash
+# Extract GitHub issue number from task file
+issue_number=$(grep "^github_url:" .claude/epics/*/$ARGUMENTS.md 2>/dev/null | grep -o '[0-9]*$')
+[ -z "$issue_number" ] && echo "❌ No GitHub issue found for $ARGUMENTS. Run /pm:epic-sync first." && exit 1
+gh issue view $issue_number --json title,body,labels,state,assignees
+```
+- Look for local task file: `.claude/epics/*/$ARGUMENTS.md`
 - Check for related issues and sub-tasks
 
 ### 2. Issue Overview
@@ -61,7 +65,7 @@ Display recent comments and updates:
    {timestamp} - {author}: {comment_preview}
    {timestamp} - {author}: {comment_preview}
    
-   View full thread: gh issue view #$ARGUMENTS --comments
+   View full thread: gh issue view #$issue_number --comments
 ```
 
 ### 6. Progress Tracking
@@ -79,8 +83,8 @@ If task file exists, show progress:
 🚀 Quick Actions:
    Start work: /pm:issue-start $ARGUMENTS
    Sync updates: /pm:issue-sync $ARGUMENTS
-   Add comment: gh issue comment #$ARGUMENTS --body "your comment"
-   View in browser: gh issue view #$ARGUMENTS --web
+   Add comment: gh issue comment #$issue_number --body "your comment"
+   View in browser: gh issue view #$issue_number --web
 ```
 
 ### 8. Error Handling

@@ -8,16 +8,21 @@ Mark an issue as complete and close it on GitHub.
 
 ## Usage
 ```
-/pm:issue-close <issue_number> [completion_notes]
+/pm:issue-close <task_id> [completion_notes]
 ```
 
 ## Instructions
 
-### 1. Find Local Task File
+### 1. Find Local Task File and Extract GitHub Issue Number
 
-First check if `.claude/epics/*/$ARGUMENTS.md` exists (new naming).
-If not found, search for task file with `github:.*issues/$ARGUMENTS` in frontmatter (old naming).
-If not found: "❌ No local task for issue #$ARGUMENTS"
+```bash
+# Extract GitHub issue number from task file
+issue_number=$(grep "^github_url:" .claude/epics/*/$ARGUMENTS.md 2>/dev/null | grep -o '[0-9]*$')
+[ -z "$issue_number" ] && echo "❌ No GitHub issue found for $ARGUMENTS. Run /pm:epic-sync first." && exit 1
+
+# Set task file path
+task_file=".claude/epics/*/$ARGUMENTS.md"
+```
 
 ### 2. Detect Current Status (Smart Completion Detection)
 
@@ -166,8 +171,8 @@ This task is now complete and ready for epic integration.
 EOF
 
 # Post comment and close issue
-gh issue comment $ARGUMENTS --body-file /tmp/completion-comment.md
-gh issue close $ARGUMENTS
+gh issue comment $issue_number --body-file /tmp/completion-comment.md
+gh issue close $issue_number
 ```
 
 ### 7. Update Epic Task List on GitHub
@@ -267,7 +272,7 @@ fi
 
 echo ""
 echo "🔗 Next actions:"
-echo "  View closed issue: gh issue view $ARGUMENTS"
+echo "  View closed issue: gh issue view $issue_number"
 echo "  Epic status: /pm:epic-status $epic_name"
 echo "  Next task: /pm:next"
 ```
