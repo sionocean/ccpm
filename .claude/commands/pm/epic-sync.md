@@ -152,7 +152,7 @@ if [ "$task_count" -lt 5 ]; then
       task_number=$(gh sub-issue create \
         --parent "$epic_number" \
         --title "$task_name" \
-        --body-file /tmp/task-body.md \
+        --body /tmp/task-body.md \
         --label "task,epic:$ARGUMENTS" \
         --json number -q .number)
     else
@@ -209,7 +209,7 @@ Task:
     3. Create sub-issue using:
        - If gh-sub-issue available:
          gh sub-issue create --parent $epic_number --title "$task_name" \
-           --body-file /tmp/task-body.md --label "task,epic:$ARGUMENTS"
+           --body /tmp/task-body.md --label "task,epic:$ARGUMENTS"
        - Otherwise:
          gh issue create --title "$task_name" --body-file /tmp/task-body.md \
            --label "task,epic:$ARGUMENTS"
