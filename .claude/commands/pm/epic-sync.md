@@ -111,7 +111,7 @@ epic_number=$(gh issue create \
   --title "Epic: $ARGUMENTS" \
   --body-file /tmp/epic-body.md \
   --label "epic,epic:$ARGUMENTS,$epic_type" \
-  --json number -q .number)
+  --json url -q .url | xargs basename)
 ```
 
 Store the returned issue number for epic frontmatter update.
@@ -141,8 +141,8 @@ if [ "$task_count" -lt 5 ]; then
   for task_file in .claude/epics/$ARGUMENTS/[A-Z][A-Z][A-Z][0-9][0-9][0-9].md; do
     [ -f "$task_file" ] || continue
 
-    # Extract task name from frontmatter
-    task_name=$(grep '^name:' "$task_file" | sed 's/^name: *//')
+    # Extract task title from frontmatter
+    task_name=$(grep '^title:' "$task_file" | sed 's/^title: *//')
 
     # Strip frontmatter from task content
     sed '1,/^---$/d; 1,/^---$/d' "$task_file" > /tmp/task-body.md
@@ -152,7 +152,7 @@ if [ "$task_count" -lt 5 ]; then
       task_number=$(gh sub-issue create \
         --parent "$epic_number" \
         --title "$task_name" \
-        --body /tmp/task-body.md \
+        --body "$(cat /tmp/task-body.md)" \
         --label "task,epic:$ARGUMENTS" \
         --json number -q .number)
     else
@@ -209,7 +209,7 @@ Task:
     3. Create sub-issue using:
        - If gh-sub-issue available:
          gh sub-issue create --parent $epic_number --title "$task_name" \
-           --body /tmp/task-body.md --label "task,epic:$ARGUMENTS"
+           --body-file /tmp/task-body.md --label "task,epic:$ARGUMENTS"
        - Otherwise:
          gh issue create --title "$task_name" --body-file /tmp/task-body.md \
            --label "task,epic:$ARGUMENTS"
@@ -341,7 +341,7 @@ for task_file in .claude/epics/$ARGUMENTS/[A-Z][A-Z][A-Z][0-9][0-9][0-9].md; do
   issue_num=$(echo "$github_url" | sed 's|.*/||')
 
   # Get task name from frontmatter
-  task_name=$(grep '^name:' "$task_file" | sed 's/^name: *//')
+  task_name=$(grep '^title:' "$task_file" | sed 's/^title: *//')
 
   # Get parallel status
   parallel=$(grep '^parallel:' "$task_file" | sed 's/^parallel: *//')
@@ -400,7 +400,7 @@ for task_file in .claude/epics/$ARGUMENTS/[A-Z][A-Z][A-Z][0-9][0-9][0-9].md; do
   [ -f "$task_file" ] || continue
 
   epic_task_id=$(grep '^id:' "$task_file" | sed 's/^id: *["']\?\([^"']*\)["']\?.*/\1/')
-  task_name=$(grep '^name:' "$task_file" | sed 's/^name: *//')
+  task_name=$(grep '^title:' "$task_file" | sed 's/^title: *//')
   github_url=$(grep '^github_url:' "$task_file" | sed 's/^github_url: *//')
   issue_num=$(echo "$github_url" | sed 's|.*/||')
 
@@ -435,9 +435,9 @@ git checkout -b epic/$ARGUMENTS
 git push -u origin epic/$ARGUMENTS
 
 # Create worktree from epic branch
-git worktree add ../epic-$ARGUMENTS
+git worktree add ../epic/$ARGUMENTS
 
-echo "✅ Created epic branch and worktree: ../epic-$ARGUMENTS from $current_branch"
+echo "✅ Created epic branch and worktree: ../epic/$ARGUMENTS from $current_branch"
 ```
 
 ### 8. Output
@@ -450,7 +450,7 @@ echo "✅ Created epic branch and worktree: ../epic-$ARGUMENTS from $current_bra
   - Files preserved: ABC001.md format maintained
   - GitHub URLs updated: frontmatter contains GitHub issue links
   - Epic dependencies preserved: depends_on/conflicts_with use Epic IDs
-  - Worktree: ../epic-$ARGUMENTS
+  - Worktree: ../epic/$ARGUMENTS
 
 Next steps:
   - Start parallel execution: /pm:epic-start $ARGUMENTS

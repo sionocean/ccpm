@@ -15,7 +15,7 @@ Merge completed epic from worktree back to main branch.
 
 1. **Verify worktree exists:**
    ```bash
-   git worktree list | grep "epic-$ARGUMENTS" || echo "❌ No worktree for epic: $ARGUMENTS"
+   git worktree list | grep "epic/$ARGUMENTS" || echo "❌ No worktree for epic: $ARGUMENTS"
    ```
 
 2. **Check for active agents:**
@@ -28,7 +28,7 @@ Merge completed epic from worktree back to main branch.
 
 Navigate to worktree and check status:
 ```bash
-cd ../epic-$ARGUMENTS
+cd ../epic/$ARGUMENTS
 
 # Check for uncommitted changes
 if [[ $(git status --porcelain) ]]; then
@@ -128,7 +128,7 @@ Options:
 3. Get help:
    /pm:epic-resolve $ARGUMENTS
 
-Worktree preserved at: ../epic-$ARGUMENTS
+Worktree preserved at: ../epic/$ARGUMENTS
 "
 exit 1
 ```
@@ -141,8 +141,8 @@ If merge succeeds:
 git push origin $target_branch
 
 # Clean up worktree
-git worktree remove ../epic-$ARGUMENTS
-echo "✅ Worktree removed: ../epic-$ARGUMENTS"
+git worktree remove ../epic/$ARGUMENTS
+echo "✅ Worktree removed: ../epic/$ARGUMENTS"
 
 # Delete branch
 git branch -d epic/$ARGUMENTS

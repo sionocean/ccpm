@@ -20,15 +20,33 @@ Analyze an issue to identify parallel work streams for maximum efficiency while 
 
 1. **Find local task file:**
    ```bash
+   bash -c '
+   ARGUMENTS="'$ARGUMENTS'"
    # Find task file
-   task_file=$(find .claude/epics -name "$ARGUMENTS.md" -not -path "*/.archived/*" 2>/dev/null | head -1)
-   [ -z "$task_file" ] && echo "❌ No task file found for $ARGUMENTS. Run: /pm:import first" && exit 1
+   find .claude/epics -name "$ARGUMENTS.md" -not -path "*/.archived/*" 2>/dev/null > /tmp/task-files.txt
+   task_file=$(head -1 /tmp/task-files.txt 2>/dev/null)
+   if [ -z "$task_file" ]; then
+     echo "❌ No task file found for $ARGUMENTS. Run: /pm:import first"
+     exit 1
+   fi
+   echo "✅ Found task file: $task_file"
+   # Export for later use
+   echo "$task_file" > /tmp/current_task_file.txt
+   '
    ```
 
 2. **Check for existing analysis:**
    ```bash
+   bash -c '
+   ARGUMENTS="'$ARGUMENTS'"
+   task_file=$(cat /tmp/current_task_file.txt)
    epic_dir=$(dirname "$task_file")
-   test -f "$epic_dir/$ARGUMENTS-analysis.md" && echo "⚠️ Analysis already exists. Overwrite? (yes/no)"
+   if [ -f "$epic_dir/$ARGUMENTS-analysis.md" ]; then
+     echo "⚠️ Analysis already exists: $epic_dir/$ARGUMENTS-analysis.md"
+     echo "Will overwrite existing analysis"
+   fi
+   echo "$epic_dir" > /tmp/current_epic_dir.txt
+   '
    ```
 
 ## Instructions
@@ -37,10 +55,25 @@ Analyze an issue to identify parallel work streams for maximum efficiency while 
 
 Get issue details from GitHub:
 ```bash
+bash -c '
+ARGUMENTS="'$ARGUMENTS'"
+task_file=$(cat /tmp/current_task_file.txt)
+
 # Extract GitHub issue number from task file
-issue_number=$(grep "^github_url:" "$task_file" 2>/dev/null | grep -o '[0-9]*$')
-[ -z "$issue_number" ] && echo "❌ No GitHub issue found for $ARGUMENTS. Run /pm:epic-sync first." && exit 1
+github_url=$(grep "^github_url:" "$task_file" 2>/dev/null)
+issue_number=$(echo "$github_url" | sed "s|.*/||")
+if [ -z "$issue_number" ]; then
+  echo "❌ No GitHub issue found for $ARGUMENTS. Run /pm:epic-sync first."
+  exit 1
+fi
+
+echo "✅ Found GitHub issue: #$issue_number"
 gh issue view $issue_number --json title,body,labels
+
+# Export for later use
+echo "$issue_number" > /tmp/current_issue_number.txt
+echo "$github_url" > /tmp/current_github_url.txt
+'
 ```
 
 Read local task file to understand and **preserve ALL specific requirements**:

@@ -10,7 +10,7 @@ Always create worktrees from existing epic branch:
 git checkout epic/{name}
 
 # Create worktree from epic branch
-git worktree add ../epic-{name}
+git worktree add ../epic/{name}
 ```
 
 The worktree will be created as a sibling directory to maintain clean separation.
@@ -26,7 +26,7 @@ The worktree will be created as a sibling directory to maintain clean separation
 ### File Operations
 ```bash
 # Working directory is the worktree
-cd ../epic-{name}
+cd ../epic/{name}
 
 # Normal git operations work
 git add {files}
@@ -62,7 +62,7 @@ git pull origin main
 git merge epic/{name}
 
 # If successful, clean up
-git worktree remove ../epic-{name}
+git worktree remove ../epic/{name}
 git branch -d epic/{name}
 ```
 
@@ -92,13 +92,13 @@ git worktree list
 git worktree prune
 
 # Force remove worktree
-git worktree remove --force ../epic-{name}
+git worktree remove --force ../epic/{name}
 ```
 
 ### Check Worktree Status
 ```bash
 # From main repo
-cd ../epic-{name} && git status && cd -
+cd ../epic/{name} && git status && cd -
 ```
 
 ## Best Practices
@@ -114,7 +114,7 @@ cd ../epic-{name} && git status && cd -
 ### Worktree Already Exists
 ```bash
 # Remove old worktree first
-git worktree remove ../epic-{name}
+git worktree remove ../epic/{name}
 # Then create new one
 ```
 
@@ -123,13 +123,13 @@ git worktree remove ../epic-{name}
 # Delete old branch
 git branch -D epic/{name}
 # Or use existing branch
-git worktree add ../epic-{name} epic/{name}
+git worktree add ../epic/{name} epic/{name}
 ```
 
 ### Cannot Remove Worktree
 ```bash
 # Force removal
-git worktree remove --force ../epic-{name}
+git worktree remove --force ../epic/{name}
 # Clean up references
 git worktree prune
 ```

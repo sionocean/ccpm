@@ -23,6 +23,10 @@ Using the test-runner agent ensures:
 
 ## Philosophy
 
+### Frontend Style Handling
+
+- ALWAYS following the the rules of **frontend style constraints** for frontend style development
+
 ### Error Handling
 
 - **Fail fast** for critical configuration (missing text model)

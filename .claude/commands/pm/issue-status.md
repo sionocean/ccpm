@@ -19,12 +19,20 @@ You are checking the current status of a GitHub issue and providing a quick stat
 Use GitHub CLI to get current status:
 ```bash
 # Find task file
-task_file=$(find .claude/epics -name "$ARGUMENTS.md" -not -path "*/.archived/*" 2>/dev/null | head -1)
-[ -z "$task_file" ] && echo "❌ No task file found for $ARGUMENTS" && exit 1
+find .claude/epics -name "$ARGUMENTS.md" -not -path "*/.archived/*" 2>/dev/null > /tmp/task-files.txt
+task_file=$(head -1 /tmp/task-files.txt 2>/dev/null)
+if [ -z "$task_file" ]; then
+  echo "❌ No task file found for $ARGUMENTS"
+  exit 1
+fi
 
 # Extract GitHub issue number from task file
-issue_number=$(grep "^github_url:" "$task_file" 2>/dev/null | grep -o '[0-9]*$')
-[ -z "$issue_number" ] && echo "❌ No GitHub issue found for $ARGUMENTS. Run /pm:epic-sync first." && exit 1
+github_url=$(grep "^github_url:" "$task_file" 2>/dev/null)
+issue_number=$(echo "$github_url" | sed 's|.*/||')
+if [ -z "$issue_number" ]; then
+  echo "❌ No GitHub issue found for $ARGUMENTS. Run /pm:epic-sync first."
+  exit 1
+fi
 gh issue view #$issue_number --json state,title,labels,assignees,updatedAt
 ```
 

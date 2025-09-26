@@ -15,14 +15,32 @@ Begin work on a GitHub issue with parallel agents based on work stream analysis.
 
 1. **Get issue details:**
    ```bash
+   bash -c '
+   ARGUMENTS="'$ARGUMENTS'"
    # Find task file
-   task_file=$(find .claude/epics -name "$ARGUMENTS.md" -not -path "*/.archived/*" 2>/dev/null | head -1)
-   [ -z "$task_file" ] && echo "❌ No task file found for $ARGUMENTS" && exit 1
+   find .claude/epics -name "$ARGUMENTS.md" -not -path "*/.archived/*" 2>/dev/null > /tmp/task-files.txt
+   task_file=$(head -1 /tmp/task-files.txt 2>/dev/null)
+   if [ -z "$task_file" ]; then
+     echo "❌ No task file found for $ARGUMENTS"
+     exit 1
+   fi
 
    # Extract GitHub issue number from task file
-   issue_number=$(grep "^github_url:" "$task_file" 2>/dev/null | grep -o '[0-9]*$')
-   [ -z "$issue_number" ] && echo "❌ No GitHub issue found for $ARGUMENTS. Run /pm:epic-sync first." && exit 1
+   github_url=$(grep "^github_url:" "$task_file" 2>/dev/null)
+   issue_number=$(echo "$github_url" | sed "s|.*/||")
+   if [ -z "$issue_number" ]; then
+     echo "❌ No GitHub issue found for $ARGUMENTS. Run /pm:epic-sync first."
+     exit 1
+   fi
+
+   echo "✅ Found task file: $task_file"
+   echo "✅ GitHub issue: #$issue_number"
    gh issue view $issue_number --json state,title,labels,body
+
+   # Export for later use
+   echo "$task_file" > /tmp/current_task_file.txt
+   echo "$issue_number" > /tmp/current_issue_number.txt
+   '
    ```
    If it fails: "❌ Cannot access issue #$issue_number. Check number or run: gh auth login"
 
@@ -32,11 +50,22 @@ Begin work on a GitHub issue with parallel agents based on work stream analysis.
 
 3. **Check for analysis:**
    ```bash
+   bash -c '
+   ARGUMENTS="'$ARGUMENTS'"
+   task_file=$(cat /tmp/current_task_file.txt)
    epic_dir=$(dirname "$task_file")
-   test -f "$epic_dir/$ARGUMENTS-analysis.md" || echo "❌ No analysis found for issue #$ARGUMENTS
 
-   Run: /pm:issue-analyze $ARGUMENTS first
-   Or: /pm:issue-start $ARGUMENTS --analyze to do both"
+   if [ -f "$epic_dir/$ARGUMENTS-analysis.md" ]; then
+     echo "✅ Found analysis file: $epic_dir/$ARGUMENTS-analysis.md"
+     echo "$epic_dir" > /tmp/current_epic_dir.txt
+   else
+     echo "❌ No analysis found for issue #$ARGUMENTS"
+     echo ""
+     echo "Run: /pm:issue-analyze $ARGUMENTS first"
+     echo "Or: /pm:issue-start $ARGUMENTS --analyze to do both"
+     exit 1
+   fi
+   '
    ```
    If no analysis exists and no --analyze flag, stop execution.
 
@@ -46,14 +75,23 @@ Begin work on a GitHub issue with parallel agents based on work stream analysis.
 
 Check if epic worktree exists:
 ```bash
+bash -c '
+task_file=$(cat /tmp/current_task_file.txt)
+
 # Extract epic name from task file path
 epic_name=$(basename $(dirname "$task_file"))
 
 # Check worktree
-if ! git worktree list | grep -q "epic-$epic_name"; then
+git worktree list > /tmp/worktrees.txt
+if grep -q "epic/$epic_name" /tmp/worktrees.txt; then
+  echo "✅ Worktree exists for epic: epic/$epic_name"
+  grep "epic/$epic_name" /tmp/worktrees.txt
+  echo "$epic_name" > /tmp/current_epic_name.txt
+else
   echo "❌ No worktree for epic. Run: /pm:epic-start $epic_name"
   exit 1
 fi
+'
 ```
 
 ### 2. Read Analysis
@@ -69,12 +107,29 @@ Get current datetime: `date -u +"%Y-%m-%dT%H:%M:%SZ"`
 
 Create workspace structure:
 ```bash
-mkdir -p .claude/epics/{epic_name}/updates/$ARGUMENTS
+bash -c '
+ARGUMENTS="'$ARGUMENTS'"
+epic_name=$(cat /tmp/current_epic_name.txt)
+mkdir -p .claude/epics/${epic_name}/updates/$ARGUMENTS
+echo "✅ Created workspace: .claude/epics/${epic_name}/updates/$ARGUMENTS"
+'
 ```
 
 Update task file frontmatter `updated` field with current datetime.
 
-### 4. Launch Parallel Agents
+### 4. GitHub Assignment
+
+```bash
+bash -c '
+issue_number=$(cat /tmp/current_issue_number.txt)
+
+# Assign to self and mark in-progress
+gh issue edit $issue_number --add-assignee @me
+echo "✅ Assigned issue #$issue_number to self"
+'
+```
+
+### 5. Launch Parallel Agents
 
 For each stream that can start immediately:
 
@@ -108,7 +163,7 @@ Task:
   prompt: |
     You are working on Issue #$ARGUMENTS in the epic worktree.
     
-    Worktree location: ../epic-{epic_name}/
+    Worktree location: ../epic/{epic_name}/
     Your stream: {stream_name}
     
     Your scope:
@@ -130,20 +185,13 @@ Task:
     Complete your stream's work and mark as completed when done.
 ```
 
-### 5. GitHub Assignment
-
-```bash
-# Assign to self and mark in-progress
-gh issue edit $issue_number --add-assignee @me --add-label "in-progress"
-```
-
 ### 6. Output
 
 ```
 ✅ Started parallel work on issue #$ARGUMENTS
 
 Epic: {epic_name}
-Worktree: ../epic-{epic_name}/
+Worktree: ../epic/{epic_name}/
 
 Launching {count} parallel agents:
   Stream A: {name} (Agent-1) ✓ Started

@@ -199,7 +199,7 @@ git commit -m "Issue #1235: Use new types"
 
 ### Starting Work
 ```bash
-1. cd ../epic-{name}
+1. cd ../epic/{name}
 2. git pull
 3. Check {issue}-analysis.md for assignment
 4. Update stream-{X}.md with "started"

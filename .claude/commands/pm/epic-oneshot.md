@@ -71,7 +71,7 @@ Step 1: Decomposition ✓
 Step 2: GitHub Sync ✓
   - Epic: #{number}
   - Sub-issues created: {count}
-  - Worktree: ../epic-$ARGUMENTS
+  - Worktree: ../epic/$ARGUMENTS
 
 Ready for development!
   Start work: /pm:epic-start $ARGUMENTS

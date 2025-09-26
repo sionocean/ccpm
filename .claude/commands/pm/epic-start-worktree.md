@@ -24,7 +24,7 @@ Launch parallel agents to work on epic tasks in a shared worktree.
 
 3. **Check for worktree:**
    ```bash
-   git worktree list | grep "epic-$ARGUMENTS"
+   git worktree list | grep "epic/$ARGUMENTS"
    ```
 
 ## Instructions
@@ -49,7 +49,7 @@ fi
 rm -f .claude/epics/$ARGUMENTS/epic.md.bak
 
 # If worktree doesn't exist, create it
-if ! git worktree list | grep -q "epic-$ARGUMENTS"; then
+if ! git worktree list | grep -q "epic/$ARGUMENTS"; then
   # Check if epic branch exists
   if ! git branch -a | grep -q "epic/$ARGUMENTS"; then
     echo "❌ Epic branch epic/$ARGUMENTS doesn't exist. Run: /pm:epic-sync $ARGUMENTS first"
@@ -58,10 +58,10 @@ if ! git worktree list | grep -q "epic-$ARGUMENTS"; then
 
   # Create worktree from existing epic branch
   git checkout epic/$ARGUMENTS
-  git worktree add ../epic-$ARGUMENTS
-  echo "✅ Created worktree: ../epic-$ARGUMENTS from epic/$ARGUMENTS"
+  git worktree add ../epic/$ARGUMENTS
+  echo "✅ Created worktree: ../epic/$ARGUMENTS from epic/$ARGUMENTS"
 else
-  echo "✅ Using existing worktree: ../epic-$ARGUMENTS"
+  echo "✅ Using existing worktree: ../epic/$ARGUMENTS"
 fi
 ```
 
@@ -101,7 +101,7 @@ Found {count} parallel streams:
   - Stream A: {description} (Agent-{id})
   - Stream B: {description} (Agent-{id})
 
-Launching agents in worktree: ../epic-$ARGUMENTS/
+Launching agents in worktree: ../epic/$ARGUMENTS/
 ```
 
 Use Task tool to launch each stream:
@@ -110,7 +110,7 @@ Task:
   description: "Issue #{issue} Stream {X}"
   subagent_type: "{agent_type}"
   prompt: |
-    Working in worktree: ../epic-$ARGUMENTS/
+    Working in worktree: ../epic/$ARGUMENTS/
     Issue: #{issue} - {title}
     Stream: {stream_name}
 
@@ -138,7 +138,7 @@ Create/update `.claude/epics/$ARGUMENTS/execution-status.md`:
 ```markdown
 ---
 started: {datetime}
-worktree: ../epic-$ARGUMENTS
+worktree: ../epic/$ARGUMENTS
 branch: epic/$ARGUMENTS
 ---
 
@@ -168,7 +168,7 @@ Monitor progress:
   /pm:epic-status $ARGUMENTS
 
 View worktree changes:
-  cd ../epic-$ARGUMENTS && git status
+  cd ../epic/$ARGUMENTS && git status
 
 Stop all agents:
   /pm:epic-stop $ARGUMENTS
@@ -190,7 +190,7 @@ As agents complete streams:
 ```
 🚀 Epic Execution Started: $ARGUMENTS
 
-Worktree: ../epic-$ARGUMENTS
+Worktree: ../epic/$ARGUMENTS
 Branch: epic/$ARGUMENTS
 
 Launching {total} agents across {issue_count} issues:
