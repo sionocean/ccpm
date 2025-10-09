@@ -417,27 +417,28 @@ echo "Synced: $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> .claude/epics/$ARGUMENTS/gith
 Follow `/rules/branch-operations.md` and `/rules/worktree-operations.md`:
 
 ```bash
-# Record current branch as source branch
+bash -c '
+# Record current branch
 current_branch=$(git branch --show-current)
 
-# Update epic.md frontmatter to include source branch
-if grep -q '^source_branch:' .claude/epics/$ARGUMENTS/epic.md; then
-  sed -i.bak "s/^source_branch:.*/source_branch: $current_branch/" .claude/epics/$ARGUMENTS/epic.md
+# Update epic.md frontmatter
+if grep -q "^source_branch:" .claude/epics/$1/epic.md; then
+  sed -i.bak "s/^source_branch:.*/source_branch: $current_branch/" .claude/epics/$1/epic.md
 else
-  # Add source_branch after the status line
   sed -i.bak "/^status:/a\
-source_branch: $current_branch" .claude/epics/$ARGUMENTS/epic.md
+source_branch: $current_branch" .claude/epics/$1/epic.md
 fi
-rm -f .claude/epics/$ARGUMENTS/epic.md.bak
+rm -f .claude/epics/$1/epic.md.bak
 
-# Create epic branch from current branch
-git checkout -b epic/$ARGUMENTS
-git push -u origin epic/$ARGUMENTS
+# Create epic branch
+git checkout -b epic/$1
+git push -u origin epic/$1
 
-# Create worktree from epic branch
-git worktree add ../epic/$ARGUMENTS
+# Create worktree at ../epic/$1
+git worktree add ../epic/$1
 
-echo "✅ Created epic branch and worktree: ../epic/$ARGUMENTS from $current_branch"
+echo "✅ Created epic branch and worktree: ../epic/$1 from $current_branch"
+' _ "$ARGUMENTS"
 ```
 
 ### 8. Output
