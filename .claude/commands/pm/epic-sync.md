@@ -106,12 +106,22 @@ else
   epic_type="feature"
 fi
 
-# Create epic issue with labels
-epic_number=$(gh issue create \
+# Create epic issue with labels (conservative approach: capture output first, then extract issue number)
+gh issue create \
   --title "Epic: $ARGUMENTS" \
   --body-file /tmp/epic-body.md \
-  --label "epic,epic:$ARGUMENTS,$epic_type" \
-  --json url -q .url | xargs basename)
+  --label "epic,epic:$ARGUMENTS,$epic_type" > /tmp/epic-issue-output.txt 2>&1
+
+# Extract issue number from output
+epic_number=$(grep -oE '/issues/[0-9]+' /tmp/epic-issue-output.txt | sed 's|.*/||')
+
+# Verify extraction result (but don't exit on failure)
+if [[ ! "$epic_number" =~ ^[0-9]+$ ]]; then
+  echo "❌ Failed to extract epic issue number from:"
+  cat /tmp/epic-issue-output.txt
+  echo ""
+  echo "Please check the output above and manually set epic_number if needed."
+fi
 ```
 
 Store the returned issue number for epic frontmatter update.
@@ -147,20 +157,27 @@ if [ "$task_count" -lt 5 ]; then
     # Strip frontmatter from task content
     sed '1,/^---$/d; 1,/^---$/d' "$task_file" > /tmp/task-body.md
 
-    # Create sub-issue with labels
+    # Create sub-issue with labels (conservative approach: capture output first, then extract issue number)
     if [ "$use_subissues" = true ]; then
-      task_number=$(gh sub-issue create \
+      gh sub-issue create \
         --parent "$epic_number" \
         --title "$task_name" \
         --body "$(cat /tmp/task-body.md)" \
-        --label "task,epic:$ARGUMENTS" \
-        --json number -q .number)
+        --label "task,epic:$ARGUMENTS" > /tmp/task-issue-output.txt 2>&1
+      task_number=$(grep -oE '/issues/[0-9]+' /tmp/task-issue-output.txt | sed 's|.*/||')
     else
-      task_number=$(gh issue create \
+      gh issue create \
         --title "$task_name" \
         --body-file /tmp/task-body.md \
-        --label "task,epic:$ARGUMENTS" \
-        --json number -q .number)
+        --label "task,epic:$ARGUMENTS" > /tmp/task-issue-output.txt 2>&1
+      task_number=$(grep -oE '/issues/[0-9]+' /tmp/task-issue-output.txt | sed 's|.*/||')
+    fi
+
+    # Verify extraction result (skip this task if failed)
+    if [[ ! "$task_number" =~ ^[0-9]+$ ]]; then
+      echo "⚠️  Failed to extract task issue number for $task_file:"
+      cat /tmp/task-issue-output.txt
+      continue
     fi
 
     # Record mapping (but keep Epic-prefixed filenames)
@@ -206,16 +223,21 @@ Task:
     For each task file:
     1. Extract task name from frontmatter
     2. Strip frontmatter using: sed '1,/^---$/d; 1,/^---$/d'
-    3. Create sub-issue using:
+    3. Create sub-issue using conservative approach (capture output, then extract number):
        - If gh-sub-issue available:
          gh sub-issue create --parent $epic_number --title "$task_name" \
-           --body-file /tmp/task-body.md --label "task,epic:$ARGUMENTS"
+           --body-file /tmp/task-body.md --label "task,epic:$ARGUMENTS" > /tmp/output.txt 2>&1
+         task_number=$(grep -oE '/issues/[0-9]+' /tmp/output.txt | sed 's|.*/||')
        - Otherwise:
          gh issue create --title "$task_name" --body-file /tmp/task-body.md \
-           --label "task,epic:$ARGUMENTS"
-    4. Record: task_file:issue_number
+           --label "task,epic:$ARGUMENTS" > /tmp/output.txt 2>&1
+         task_number=$(grep -oE '/issues/[0-9]+' /tmp/output.txt | sed 's|.*/||')
+    4. Verify extraction: if [[ ! "$task_number" =~ ^[0-9]+$ ]]; then skip this task
+    5. Record: task_file:issue_number
 
-    IMPORTANT: Always include --label parameter with "task,epic:$ARGUMENTS"
+    IMPORTANT:
+    - Always include --label parameter with "task,epic:$ARGUMENTS"
+    - Use conservative approach (capture output + grep extract) instead of --json flag
 
     Return mapping of files to issue numbers.
 ```
@@ -232,8 +254,11 @@ created_issues=$(cat /tmp/batch-*/mapping.txt | cut -d: -f2)
 > /tmp/verified-mapping.txt
 
 for issue_num in $created_issues; do
-  # Extract task_id from issue title
-  task_id=$(gh issue view $issue_num --json title -q .title | grep -o '^[A-Z][A-Z][A-Z][0-9][0-9][0-9]')
+  # Extract task_id from issue title (conservative approach: capture output first)
+  gh issue view $issue_num > /tmp/issue-view-${issue_num}.txt 2>&1
+
+  # Extract title and then task ID pattern
+  task_id=$(grep -E '^title:' /tmp/issue-view-${issue_num}.txt | sed 's/^title:\s*//' | grep -oE '^[A-Z][A-Z][A-Z][0-9][0-9][0-9]')
 
   if [[ -n "$task_id" ]]; then
     task_file=".claude/epics/$ARGUMENTS/${task_id}.md"
@@ -266,8 +291,9 @@ mv /tmp/verified-mapping.txt /tmp/task-mapping.txt
 while IFS=: read -r task_file task_number; do
   # Keep the Epic-prefixed filename (e.g., ABC001.md)
   # Only update GitHub URL in frontmatter
-  
-  repo=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+
+  # Get repo info (conservative approach: extract from remote URL)
+  repo=$(git remote get-url origin | sed 's|.*github.com[:/]||; s|\.git$||')
   github_url="https://github.com/$repo/issues/$task_number"
   current_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
@@ -311,8 +337,8 @@ Update the epic file with GitHub URL, timestamp, and real task IDs:
 
 #### 5a. Update Frontmatter
 ```bash
-# Get repo info
-repo=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+# Get repo info (conservative approach: extract from remote URL)
+repo=$(git remote get-url origin | sed 's|.*github.com[:/]||; s|\.git$||')
 epic_url="https://github.com/$repo/issues/$epic_number"
 current_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
@@ -434,8 +460,17 @@ rm -f .claude/epics/$1/epic.md.bak
 git checkout -b epic/$1
 git push -u origin epic/$1
 
-# Create worktree at ../epic/$1
-git worktree add ../epic/$1
+# Ensure epic parent directory exists
+mkdir -p ../epic
+
+# Switch to epic directory (avoids path confusion: ../epic/$1 vs ../epic-$1)
+cd ../epic
+
+# Create worktree in current directory (path is just $1, clear and unambiguous)
+git worktree add "$1" "epic/$1"
+
+# Return to original directory
+cd -
 
 echo "✅ Created epic branch and worktree: ../epic/$1 from $current_branch"
 ' _ "$ARGUMENTS"
